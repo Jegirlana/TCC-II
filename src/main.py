@@ -23,13 +23,8 @@ from src.analyzers.sampling_recommender import SamplingRecommender
 class ExcessiveLogsAnalyzer:
     """Analisador principal para detecção de logs excessivos."""
 
-    def __init__(self, analysis_mode: str = "all"):
-        """
-        Inicializa o analisador.
-
-        Args:
-            analysis_mode: Modo de análise (sempre "all" - executa todas as análises disponíveis)
-        """
+    def __init__(self):
+        """Inicializa o analisador e todos os clientes LLM disponíveis."""
         self.analysis_mode = "all"
         self.llm_clients = {}
 
@@ -201,7 +196,7 @@ class ExcessiveLogsAnalyzer:
         total_issues = (
             len(level_analysis['issues']) +
             len(unnecessary_analysis['issues']) +
-            len(sampling_analysis.get('recommendations', []))
+            len(sampling_analysis.get('recommended_strategies', []))
         )
 
         # Calcula score de saúde (0-100)

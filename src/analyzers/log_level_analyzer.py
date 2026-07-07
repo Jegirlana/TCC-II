@@ -6,6 +6,7 @@ Analisa o uso de níveis de log e identifica configurações inadequadas.
 from typing import List, Dict, Any
 from collections import defaultdict
 import json
+import random
 
 
 class LogLevelAnalyzer:
@@ -196,7 +197,8 @@ class LogLevelAnalyzer:
 
         # Prepara contexto rico para IA
         sample_logs_by_level = defaultdict(list)
-        for log in logs[:100]:  # Amostra de 100 logs
+        sample = random.sample(logs, min(100, len(logs)))
+        for log in sample:
             level = log.get('level', 'UNKNOWN')
             if len(sample_logs_by_level[level]) < 5:
                 sample_logs_by_level[level].append({

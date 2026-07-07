@@ -7,7 +7,7 @@ Guia completo para utilizar a ferramenta de análise de logs excessivos.
 ## 📋 Índice
 
 1. [Instalação](#instalação)
-2. [Modos de Análise](#modos-de-análise)
+2. [Como Funciona](#como-funciona)
 3. [Uso Básico](#uso-básico)
 4. [Configuração](#configuração)
 5. [Interpretação de Resultados](#interpretação-de-resultados)
@@ -44,108 +44,26 @@ npm run auth
 cd ..
 
 # 5. Teste a instalação
-./run_with_puter.sh
-```
-
-### Verificação
-
-Execute um teste rápido com os dados de exemplo:
-
-```bash
-python3 src/main.py dataset/synthetic_logs.json --mode standard
+python3 src/main.py dataset/synthetic_logs.json
 ```
 
 Se ver o relatório de análise, a instalação está correta!
 
 ---
 
-## Modos de Análise
+## Como Funciona
 
-A ferramenta oferece **3 modos de análise**:
+A ferramenta executa **todas as análises disponíveis** em uma única chamada, usando cada provedor configurado:
 
-### 📊 Comparação dos Modos
+| Provedor | Custo | Requer configuração |
+|----------|-------|---------------------|
+| **Groq** (Llama 3.3) | Gratuito | `GROQ_API_KEY` no `.env` |
+| **Google Gemini** | Gratuito | `GOOGLE_API_KEY` no `.env` |
+| **Claude** via Puter | Gratuito | Puter Bridge rodando |
+| **ChatGPT** via Puter | Gratuito | Puter Bridge rodando |
+| **Standard** (sem IA) | Gratuito | Nenhuma |
 
-| Aspecto | Standard | Claude | ChatGPT |
-|---------|----------|--------|---------|
-| **Custo** | Gratuito | ~$0.003-0.01/1000 logs | ~$0.005-0.02/1000 logs |
-| **Velocidade** | Muito rápido (< 1s) | Moderado (5-15s) | Moderado (5-15s) |
-| **Qualidade** | Boa | Excelente | Excelente |
-| **Recomendações** | Genéricas | Específicas | Específicas |
-| **API Key** | Não requer | Anthropic | OpenAI |
-| **Uso offline** | ✅ Sim | ❌ Não | ❌ Não |
-
-### 1️⃣ Modo Standard (Padrão)
-
-**Quando usar:**
-- Análises rápidas e exploratórias
-- CI/CD pipelines
-- Análises de rotina
-- Sem orçamento para APIs
-
-**Características:**
-- ✅ Completamente gratuito
-- ✅ Não precisa de configuração
-- ✅ Processamento rápido
-- ✅ Análise baseada em regras e heurísticas
-- ⚠️ Recomendações genéricas
-
-**Como usar:**
-```bash
-python3 src/main.py logs.json --mode standard
-```
-
----
-
-### 2️⃣ Modo Claude (Anthropic AI)
-
-**Quando usar:**
-- Análises profundas e auditorias
-- Identificar problemas complexos
-- Obter recomendações específicas de código
-- Otimização de custos com prompt caching
-
-**Características:**
-- ✅ Análise contextual profunda
-- ✅ Recomendações personalizadas
-- ✅ Sugestões específicas de código
-- ✅ Prompt caching (reduz custos)
-- 💰 Requer API key paga
-
-**Como usar:**
-```bash
-python3 src/main.py logs.json --mode claude
-```
-
-**Modelos disponíveis:**
-- `claude-sonnet-4-6` - Recomendado (equilíbrio)
-- `claude-opus-4-6` - Mais poderoso
-- `claude-haiku-4-5` - Mais rápido
-
----
-
-### 3️⃣ Modo ChatGPT (OpenAI)
-
-**Quando usar:**
-- Análises profundas e auditorias
-- Alternativa ao Claude
-- Já tem conta OpenAI
-- Preferência pelo ecossistema OpenAI
-
-**Características:**
-- ✅ Análise contextual profunda
-- ✅ Recomendações personalizadas
-- ✅ Ampla disponibilidade global
-- 💰 Requer API key paga
-
-**Como usar:**
-```bash
-python3 src/main.py logs.json --mode chatgpt
-```
-
-**Modelos disponíveis:**
-- `gpt-4o` - Recomendado (GPT-4 Omni)
-- `gpt-4-turbo` - GPT-4 Turbo
-- `gpt-3.5-turbo` - Mais barato
+Cada provedor disponível executa as 3 análises independentemente. Os resultados são comparados no relatório final, o que permite avaliar a consistência entre diferentes modelos.
 
 ---
 
@@ -161,23 +79,18 @@ python3 src/main.py <arquivo_logs> [opções]
 
 | Opção | Descrição | Exemplo |
 |-------|-----------|---------|
-| `--mode` | Modo de análise (standard/claude/chatgpt) | `--mode claude` |
-| `-o, --output` | Arquivo de saída do relatório | `-o report.json` |
-| `--no-llm` | (Deprecated) Use `--mode standard` | |
+| `-o, --output` | Nome base para os arquivos de relatório (sem extensão) | `-o meu_relatorio` |
 
 ### Exemplos de Comandos
 
 ```bash
-# Análise padrão (gratuita)
-python3 src/main.py dataset/synthetic_logs.json --mode standard
+# Análise completa (todos os provedores disponíveis)
+python3 src/main.py dataset/synthetic_logs.json
 
-# Análise com Claude
-python3 src/main.py production_logs.json --mode claude -o report.json
+# Com nome de saída personalizado
+python3 src/main.py production_logs.json -o relatorio_producao
 
-# Análise com ChatGPT
-python3 src/main.py staging_logs.json --mode chatgpt
-
-# Comparar todos os modos
+# Usando o script que inicia o Puter Bridge automaticamente
 ./run_with_puter.sh dataset/synthetic_logs.json
 ```
 
@@ -227,44 +140,72 @@ Copie o arquivo de exemplo:
 cp .env.example .env
 ```
 
-### Configuração para Claude
+### Configuração para Groq (GRATUITO)
 
 ```bash
 # .env
-ANTHROPIC_API_KEY=sk-ant-api03-xxxxx
-CLAUDE_MODEL_NAME=claude-sonnet-4-6
+GROQ_API_KEY=sua_chave_groq_aqui
+GROQ_MODEL_NAME=llama-3.3-70b-versatile
 ```
 
 **Como obter a API key:**
-1. Acesse https://console.anthropic.com/
-2. Crie uma conta
-3. Adicione créditos (mínimo $5)
-4. Gere uma API key em Settings → API Keys
+1. Acesse https://console.groq.com/
+2. Crie uma conta gratuita
+3. Gere uma API key em API Keys
 
-### Configuração para ChatGPT
+### Configuração para Google Gemini (GRATUITO)
 
 ```bash
 # .env
-OPENAI_API_KEY=sk-proj-xxxxx
-OPENAI_MODEL_NAME=gpt-4o
+GOOGLE_API_KEY=sua_chave_google_aqui
+GEMINI_MODEL_NAME=gemini-flash-latest
 ```
 
 **Como obter a API key:**
-1. Acesse https://platform.openai.com/
-2. Crie uma conta
-3. Adicione créditos
-4. Gere uma API key em API keys
+1. Acesse https://aistudio.google.com/app/apikey
+2. Crie uma conta Google
+3. Gere uma API key
 
-### Testar Configuração
+### Configuração para Claude e ChatGPT (via Puter — GRATUITO)
+
+O Puter Bridge permite usar Claude e ChatGPT sem custo. Inicie-o antes de executar a análise:
 
 ```bash
-# Verifica quais modos estão disponíveis
-python3 test_modes.py
+# Inicia o Puter Bridge
+./start_puter.sh
+
+# Execute a análise normalmente
+python3 src/main.py dataset/synthetic_logs.json
+
+# Para o Puter Bridge ao terminar
+./stop_puter.sh
+```
+
+Ou use o script integrado que gerencia tudo automaticamente:
+
+```bash
+./run_with_puter.sh dataset/synthetic_logs.json
 ```
 
 ---
 
 ## Interpretação de Resultados
+
+### Arquivos Gerados
+
+Após a análise, os relatórios são salvos na pasta `reports/`:
+
+```
+reports/
+├── synthetic_logs_groq.json       # Resultado do Groq
+├── synthetic_logs_gemini.json     # Resultado do Gemini
+├── synthetic_logs_claude_ai.json  # Resultado do Claude
+├── synthetic_logs_chatgpt.json    # Resultado do ChatGPT
+├── synthetic_logs_sem_ia.json     # Resultado Standard (sem IA)
+└── synthetic_logs_comparativo.json # Comparativo consolidado
+```
+
+> **Atenção:** os arquivos são sobrescritos a cada execução. Use `-o` para nomear relatórios que precisem ser preservados.
 
 ### Health Score
 
@@ -285,33 +226,31 @@ Métrica de 0 a 100 que indica a saúde do sistema de logs:
 - **high** - Ação necessária 🔴
 - **critical** - Urgente ⚠️
 
-### Estrutura do Relatório
-
-O relatório JSON contém:
+### Estrutura do Relatório Individual
 
 ```json
 {
   "metadata": {
     "analysis_timestamp": "...",
-    "analysis_mode": "standard|claude|chatgpt",
-    "llm_provider": "...",
-    "model": "..."
+    "analysis_mode": "groq",
+    "llm_provider": "groq",
+    "model": "llama-3.3-70b-versatile"
   },
   "summary": {
     "total_logs": 1000,
-    "level_distribution": {...},
-    "log_rate": {...}
+    "level_distribution": {},
+    "log_rate": {}
   },
   "analyses": {
-    "log_levels": {...},
-    "unnecessary_logs": {...},
-    "sampling_recommendations": {...}
+    "log_levels": {},
+    "unnecessary_logs": {},
+    "sampling_recommendations": {}
   },
   "overall_assessment": {
     "health_score": 75,
     "overall_severity": "medium",
     "total_issues": 5,
-    "priority_actions": [...]
+    "priority_actions": []
   }
 }
 ```
@@ -341,17 +280,19 @@ O relatório lista ações ordenadas por prioridade:
 
 ## Exemplos Práticos
 
-### Exemplo 1: Primeira Análise (Standard)
+### Exemplo 1: Primeira Análise
 
 ```bash
-# Análise rápida e gratuita
-python3 src/main.py production_logs.json --mode standard -o initial_report.json
+# Análise completa com todos os provedores disponíveis
+python3 src/main.py production_logs.json -o initial_report
 
-# Ver Health Score
-cat initial_report.json | grep -A 5 'overall_assessment'
-
-# Ver ações prioritárias
-cat initial_report.json | grep -A 10 'priority_actions'
+# Ver Health Score do modo Standard
+cat reports/initial_report_sem_ia.json | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+print('Health Score:', data['overall_assessment']['health_score'])
+print('Severidade:', data['overall_assessment']['overall_severity'])
+"
 ```
 
 **Resultado típico:**
@@ -364,85 +305,56 @@ Potencial de redução: 28%
 
 ---
 
-### Exemplo 2: Análise Profunda (Claude)
-
-Quando o Health Score está baixo, use IA para análise detalhada:
+### Exemplo 2: Comparar Provedores
 
 ```bash
-# Análise com Claude
-python3 src/main.py production_logs.json --mode claude -o detailed_report.json
-```
+# Executa todos e gera relatório comparativo
+python3 src/main.py production_logs.json -o comparacao
 
-**Diferenças no output:**
-
-**Standard:**
-```json
-{
-  "recommendation": "Reduzir logs INFO desnecessários",
-  "priority": "medium"
-}
-```
-
-**Claude:**
-```json
-{
-  "recommendation": "Remover log INFO em PaymentService.processPayment() linha 87",
-  "rationale": "Duplica informação do log de confirmação",
-  "code_suggestion": "// Remover: logger.info('Processing...')\n// Manter: logger.info('Payment confirmed', details)",
-  "estimated_reduction": "8% dos logs INFO"
-}
+# Ver comparativo consolidado
+cat reports/comparacao_comparativo.json | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+for mode, result in data['results_by_mode'].items():
+    score = result['overall_assessment']['health_score']
+    issues = result['overall_assessment']['total_issues']
+    print(f'{mode:10s}: Health={score}/100  Issues={issues}')
+"
 ```
 
 ---
 
-### Exemplo 3: Comparação de Modos
+### Exemplo 3: Workflow Completo de Melhoria
 
+**Passo 1: Análise antes da intervenção**
 ```bash
-# Executar todos os modos
-./compare_modes.sh production_logs.json
-
-# Resultado:
-# 📊 Standard:  15 issues | Health Score: 60/100
-# 🤖 Claude:    18 issues | Health Score: 58/100  
-# 💬 ChatGPT:   17 issues | Health Score: 59/100
+python3 src/main.py logs.json -o before
 ```
 
----
-
-### Exemplo 4: Workflow Completo
-
-**Passo 1: Análise Inicial**
+**Passo 2: Implementar recomendações**
 ```bash
-python3 src/main.py logs.json --mode standard -o before.json
+# Ver recomendações detalhadas do Groq
+cat reports/before_groq.json | python3 -m json.tool | less
 ```
 
-**Passo 2: Se Health Score < 70, análise profunda**
+**Passo 3: Validar melhorias**
 ```bash
-SCORE=$(cat before.json | python3 -c "import json, sys; print(json.load(sys.stdin)['overall_assessment']['health_score'])")
-
-if [ $SCORE -lt 70 ]; then
-    python3 src/main.py logs.json --mode claude -o detailed.json
-fi
-```
-
-**Passo 3: Implementar recomendações**
-```bash
-# Ver recomendações
-cat detailed.json | python3 -m json.tool | less
-```
-
-**Passo 4: Validar melhorias**
-```bash
-python3 src/main.py logs_after.json --mode standard -o after.json
+python3 src/main.py logs_after.json -o after
 
 # Comparar scores
-echo "Antes:" && cat before.json | grep health_score
-echo "Depois:" && cat after.json | grep health_score
+echo "Antes:" && cat reports/before_sem_ia.json | python3 -c "
+import json, sys; d = json.load(sys.stdin)
+print('  Health Score:', d['overall_assessment']['health_score'])
+"
+echo "Depois:" && cat reports/after_sem_ia.json | python3 -c "
+import json, sys; d = json.load(sys.stdin)
+print('  Health Score:', d['overall_assessment']['health_score'])
+"
 ```
 
 ---
 
-### Exemplo 5: CI/CD Integration
+### Exemplo 4: CI/CD Integration
 
 ```yaml
 # .github/workflows/analyze-logs.yml
@@ -450,14 +362,19 @@ analyze_logs:
   runs-on: ubuntu-latest
   steps:
     - uses: actions/checkout@v2
-    
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
     - name: Analyze logs
-      run: |
-        python3 src/main.py logs/test.json --mode standard -o report.json
-        
+      run: python3 src/main.py logs/test.json -o report
+
     - name: Check Health Score
       run: |
-        SCORE=$(cat report.json | python3 -c "import json, sys; print(json.load(sys.stdin)['overall_assessment']['health_score'])")
+        SCORE=$(cat reports/report_sem_ia.json | python3 -c "
+        import json, sys
+        print(json.load(sys.stdin)['overall_assessment']['health_score'])
+        ")
         if [ $SCORE -lt 70 ]; then
           echo "❌ Health Score muito baixo: $SCORE"
           exit 1
@@ -466,31 +383,41 @@ analyze_logs:
 
 ---
 
-### Exemplo 6: Análise Periódica
+### Exemplo 5: Análise Periódica
 
 ```bash
-# Script para análise diária
 #!/bin/bash
+# Script para análise diária
 DATE=$(date +%Y%m%d)
 
-# Análise standard (gratuita)
-python3 src/main.py /var/logs/app.json \
-  --mode standard \
-  -o "reports/daily_${DATE}.json"
+python3 src/main.py /var/logs/app.json -o "daily_${DATE}"
 
-# Alerta se Health Score < 70
-SCORE=$(cat "reports/daily_${DATE}.json" | python3 -c "import json, sys; print(json.load(sys.stdin)['overall_assessment']['health_score'])")
+SCORE=$(cat "reports/daily_${DATE}_sem_ia.json" | python3 -c "
+import json, sys
+print(json.load(sys.stdin)['overall_assessment']['health_score'])
+")
 
 if [ $SCORE -lt 70 ]; then
     echo "⚠️ Health Score: $SCORE" | mail -s "Log Alert" admin@example.com
 fi
+```
 
-# Análise profunda mensal (no dia 1)
-if [ $(date +%d) -eq 01 ]; then
-    python3 src/main.py /var/logs/app.json \
-      --mode claude \
-      -o "reports/monthly_${DATE}.json"
-fi
+---
+
+### Exemplo 6: Filtrar Resultados com jq
+
+```bash
+# Ver apenas ações prioritárias do Groq
+cat reports/analysis_groq.json | jq '.overall_assessment.priority_actions'
+
+# Ver potencial de redução
+cat reports/analysis_groq.json | jq '.analyses.unnecessary_logs.reduction_potential_percentage'
+
+# Ver estratégias de sampling
+cat reports/analysis_groq.json | jq '.analyses.sampling_recommendations.recommended_strategies'
+
+# Comparar Health Scores de todos os provedores
+cat reports/analysis_comparativo.json | jq '.results_by_mode | to_entries[] | {mode: .key, score: .value.overall_assessment.health_score}'
 ```
 
 ---
@@ -500,7 +427,6 @@ fi
 ### Erro: "Módulo não instalado"
 
 ```bash
-# Solução
 pip install -r requirements.txt
 ```
 
@@ -510,10 +436,7 @@ pip install -r requirements.txt
 # Verificar se .env existe
 ls -la .env
 
-# Verificar conteúdo
-cat .env
-
-# Criar se não existir
+# Criar a partir do exemplo
 cp .env.example .env
 # Editar e adicionar sua chave
 nano .env
@@ -522,29 +445,35 @@ nano .env
 ### Erro: "Arquivo de logs não encontrado"
 
 ```bash
-# Verificar caminho
-ls -la caminho/para/logs.json
-
 # Usar caminho absoluto
-python3 src/main.py /caminho/completo/logs.json --mode standard
+python3 src/main.py /caminho/completo/logs.json
+```
+
+### Puter Bridge não conecta
+
+```bash
+# Verifique se o bridge está rodando
+curl http://localhost:3000/health
+
+# Se não estiver, inicie-o
+./start_puter.sh
+
+# Verifique os logs do bridge
+cat puter-bridge.log
 ```
 
 ### Análise não usa IA mesmo com chave configurada
 
 ```bash
-# Verificar se chave está sendo carregada
-python3 -c "import os; from dotenv import load_dotenv; load_dotenv(); print(os.getenv('ANTHROPIC_API_KEY'))"
-
-# Se não aparecer, verificar .env
-cat .env | grep ANTHROPIC
+# Verificar se a chave está sendo carregada
+python3 -c "
+import os
+from dotenv import load_dotenv
+load_dotenv()
+print('GROQ:', os.getenv('GROQ_API_KEY', 'NÃO ENCONTRADA'))
+print('GOOGLE:', os.getenv('GOOGLE_API_KEY', 'NÃO ENCONTRADA'))
+"
 ```
-
-### Custo muito alto
-
-**Soluções:**
-- Use `--mode standard` para análises de rotina (gratuito)
-- Com Claude, análises repetidas usam cache (~90% economia)
-- Com ChatGPT, use `gpt-3.5-turbo` para custos menores
 
 ### Formato de log inválido
 
@@ -563,64 +492,48 @@ Certifique-se que seu log tem os campos mínimos:
 
 ## Dicas e Boas Práticas
 
-### 1. Escolha o Modo Certo
-
-- **Exploração inicial?** → Standard
-- **Problemas identificados?** → Claude/ChatGPT
-- **CI/CD?** → Standard
-- **Auditoria profunda?** → Claude/ChatGPT
-
-### 2. Economize Custos
-
-- Análises de rotina: Standard (gratuito)
-- Análises profundas: Claude (prompt caching)
-- Use ChatGPT 3.5-turbo para análises menos críticas
-
-### 3. Automatize
+### 1. Preserve Relatórios Importantes
 
 ```bash
-# Diário: Standard
-# Mensal: Claude/ChatGPT
-# Após mudanças: Comparação antes/depois
+# Use -o com nome descritivo para não sobrescrever
+python3 src/main.py logs.json -o "producao_$(date +%Y%m%d)"
 ```
 
-### 4. Use jq para Filtrar
+### 2. Compare Provedores para Maior Confiança
+
+Quando diferentes provedores concordam em um issue, a probabilidade de ser um problema real é maior. Divergências indicam casos limítrofes que merecem análise manual.
+
+### 3. Use o Modo Standard como Baseline
+
+O modo Standard é determinístico — os mesmos logs sempre produzem o mesmo resultado. Use-o para comparações antes/depois de mudanças no sistema de logging.
+
+### 4. Dataset de Teste
+
+Use os logs sintéticos incluídos para validar a instalação e entender o formato esperado:
 
 ```bash
-# Ver apenas ações prioritárias
-cat report.json | jq '.overall_assessment.priority_actions'
-
-# Ver potencial de redução
-cat report.json | jq '.analyses.unnecessary_logs.reduction_potential_percentage'
-
-# Ver estratégias de sampling
-cat report.json | jq '.analyses.sampling_recommendations.recommended_strategies'
-```
-
-### 5. Salve Relatórios com Datas
-
-```bash
-python3 src/main.py logs.json --mode claude -o "report_$(date +%Y%m%d).json"
+python3 src/main.py dataset/synthetic_logs.json
 ```
 
 ---
 
 ## Recursos Adicionais
 
-- **Executar com Puter:** `./run_with_puter.sh`
-- **Executar análise básica:** `./run_analysis.sh`
+- **Executar com Puter Bridge automático:** `./run_with_puter.sh`
+- **Executar análise sem Puter:** `./run_analysis.sh`
 - **Parar Puter Bridge:** `./stop_puter.sh`
-- **Gerador de logs sintéticos:** `dataset/generate_synthetic_logs.py`
+- **Gerar novo dataset sintético:** `python3 dataset/generate_synthetic_logs.py`
+- **Documentação técnica:** `docs/ARQUITETURA.md`
+- **Comparativo de provedores:** `docs/TABELA_COMPARACAO.md`
 
 ---
 
 ## Suporte
 
-- Documentação técnica: `docs/ARQUITETURA.md`
 - Issues: Abra uma issue no repositório
 - Contribuições: Pull requests são bem-vindos
 
 ---
 
-**Versão:** 2.0  
-**Última atualização:** Abril 2026
+**Versão:** 4.0
+**Última atualização:** Julho 2026

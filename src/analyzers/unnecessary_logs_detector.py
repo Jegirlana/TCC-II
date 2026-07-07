@@ -6,6 +6,7 @@ Detecta logs desnecessários que não agregam valor para análise ou troubleshoo
 from typing import List, Dict, Any
 from collections import defaultdict
 import json
+import random
 import re
 
 
@@ -76,11 +77,12 @@ class UnnecessaryLogsDetector:
         # 4. Analisa logs com baixo conteúdo informativo
         low_info_logs = self._detect_low_information_logs(logs)
 
-        # Calcula potencial de redução
-        unnecessary_count = (
+        # Calcula potencial de redução (cap em total de logs para evitar dupla contagem)
+        unnecessary_count = min(
             len(static_logs) +
             len(trivial_success) +
-            sum(d['count'] - 1 for d in excessive_duplicates)  # Mantém 1 de cada duplicata
+            sum(d['count'] - 1 for d in excessive_duplicates),
+            len(logs)
         )
 
         reduction_percentage = round((unnecessary_count / len(logs)) * 100, 2) if logs else 0
@@ -277,9 +279,9 @@ class UnnecessaryLogsDetector:
         """Análise inteligente usando LLM para classificar logs como necessários/desnecessários."""
         print(f"      🤖 IA analisando {len(logs)} logs individualmente...")
 
-        # Amostra logs para análise (máximo 100 para não explodir o contexto)
+        # Amostra aleatória para análise (máximo 100 para não explodir o contexto)
         sample_size = min(100, len(logs))
-        sample_logs = logs[:sample_size]
+        sample_logs = random.sample(logs, sample_size)
 
         # Prepara prompt para classificação em batch
         system_prompt = """Você é um especialista em observabilidade e logging.
