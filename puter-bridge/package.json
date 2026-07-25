@@ -1,0 +1,22 @@
+{
+  "name": "puter-bridge",
+  "version": "1.0.0",
+  "description": "Node.js HTTP bridge for Puter.js AI API",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "auth": "node auth.js"
+  },
+  "dependencies": {
+    "@heyputer/puter.js": "^2.0.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "",
+  "license": "MIT"
+}
