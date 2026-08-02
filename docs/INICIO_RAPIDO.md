@@ -36,10 +36,47 @@ Salve o arquivo!
 
 ---
 
-## ⚡ Passo 3: Executar com Puter (30 segundos)
+## ⚡ Passo 3: Iniciar a Interface Gráfica
+
+### Linux/Mac
 
 ```bash
-./run_with_puter.sh
+# (Opcional) Ative Claude e ChatGPT via Puter em um terminal separado
+./start_puter.sh
+
+# Inicie a interface gráfica
+./start_ui.sh
+```
+
+Acesse `http://127.0.0.1:8501` no navegador.
+
+### Windows
+
+```bat
+:: (Opcional) Ative Claude e ChatGPT via Puter em uma janela separada
+start_puter.bat
+
+:: Inicie a interface gráfica (duplo clique ou pelo Prompt de Comando)
+start_ui.bat
+```
+
+O navegador abre automaticamente em `http://127.0.0.1:8501`.
+
+---
+
+**O que acontece ao clicar em "Executar Análise":**
+1. Os logs são carregados e as estatísticas calculadas
+2. Cada provedor selecionado executa as 3 análises independentemente
+3. Os resultados aparecem em abas separadas com gráficos e ações prioritárias
+4. Os relatórios JSON são salvos automaticamente em `reports/`
+
+---
+
+### Alternativa: Executar via linha de comando com Puter
+
+```bash
+./run_with_puter.sh       # Linux/Mac
+run_with_puter.bat        # Windows
 ```
 
 **O que acontece:**
@@ -82,68 +119,117 @@ Salve o arquivo!
 
 ## 🔧 Comandos Úteis
 
-### Ver relatórios gerados
+### Iniciar interface gráfica
+
 ```bash
-ls -lh reports/
+./start_ui.sh          # Linux/Mac
+start_ui.bat           # Windows
+```
+
+Acesse `http://127.0.0.1:8501` no navegador.
+
+### Ver relatórios gerados
+
+```bash
+ls -lh reports/                        # Linux/Mac
+dir reports\                           # Windows
 ```
 
 ### Ver resumo de uma análise
+
 ```bash
 cat reports/synthetic_logs_claude_ai.json | jq '.overall_assessment'
 ```
 
 ### Parar Puter Bridge
+
 ```bash
-./stop_puter.sh
+./stop_puter.sh        # Linux/Mac
+stop_puter.bat         # Windows
 ```
 
 ### Ver logs do Puter
+
 ```bash
 tail -f puter-bridge.log
 ```
 
-### Executar novamente (Puter já rodando)
+### Executar novamente via linha de comando (Puter já rodando)
+
 ```bash
-./run_with_puter.sh
+./run_with_puter.sh    # Linux/Mac
+run_with_puter.bat     # Windows
 ```
 
 ---
 
 ## ❓ Troubleshooting
 
-### Erro "Não foi possível inicializar CLAUDE via Puter"
-**Solução:** Certifique-se de que o Puter Bridge está rodando:
+### Interface não abre / "venv não encontrado"
+
+O ambiente virtual precisa ser criado antes de usar `start_ui.sh` / `start_ui.bat`:
+
 ```bash
-curl http://localhost:3000/health
+# Linux/Mac
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Windows
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
-Se não estiver, execute:
+### Porta 8501 já em uso
+
+Edite `start_ui.sh` ou `start_ui.bat` e troque `--server.port 8501` por outra porta (ex: `8502`).
+
+### Erro "Não foi possível inicializar CLAUDE via Puter"
+
+Certifique-se de que o Puter Bridge está rodando:
+
 ```bash
-./run_with_puter.sh
+curl http://localhost:3000/health    # Linux/Mac
+```
+
+Se não estiver, inicie-o:
+
+```bash
+./start_puter.sh    # Linux/Mac
+start_puter.bat     # Windows
 ```
 
 ### "Porta 3000 em uso"
-**Solução:** Mude a porta no `puter-bridge/.env`:
-```bash
+
+Mude a porta no `puter-bridge/.env`:
+
+```
 PORT=3001
 ```
 
 E no `.env` principal:
-```bash
+
+```
 PUTER_BRIDGE_URL=http://localhost:3001
 ```
 
-### Navegador não abre para autenticação
-**Solução:** Execute manualmente:
+### Navegador não abre para autenticação do Puter
+
+Execute manualmente:
+
 ```bash
 cd puter-bridge
 npm run auth
 ```
 
 ### API keys Groq/Gemini não funcionam
-**Solução:** Verifique se copiou a chave completa:
+
+Verifique se a chave está correta no `.env`:
+
 ```bash
-cat .env | grep -E "GROQ|GOOGLE"
+cat .env | grep -E "GROQ|GOOGLE"    # Linux/Mac
+type .env | findstr "GROQ GOOGLE"   # Windows
 ```
 
 ---

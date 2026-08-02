@@ -46,10 +46,21 @@ O **Excessive Logs Analyzer** é uma ferramenta que identifica e mitiga o antipa
 
 ```
 ┌─────────────────────────────────────────────────────────┐
+│               CAMADA DE APRESENTAÇÃO                    │
+│  ┌───────────────────────┐  ┌────────────────────────┐  │
+│  │   app.py (Streamlit)  │  │  Linha de Comando      │  │
+│  │   http://127.0.0.1    │  │  python3 src/main.py   │  │
+│  │   :8501               │  │  ./run_with_puter.sh   │  │
+│  │   start_ui.sh/.bat    │  │  run_with_puter.bat    │  │
+│  └──────────┬────────────┘  └──────────┬─────────────┘  │
+└─────────────┼────────────────────────── ┼───────────────┘
+              └───────────────┬───────────┘
+                              │
+┌─────────────────────────────┼───────────────────────────┐
 │                   CAMADA DE ENTRADA                     │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐              │
-│  │   Logs   │  │Sintéticos│  │  Seus    │              │
-│  │   JSON   │  │ Gerados  │  │  Logs    │              │
+│  │   Logs   │  │Sintéticos│  │  Upload  │              │
+│  │   JSON   │  │ Gerados  │  │ via GUI  │              │
 │  └────┬─────┘  └────┬─────┘  └────┬─────┘              │
 └───────┼─────────────┼─────────────┼─────────────────────┘
         └─────────────┴─────────────┘
@@ -312,6 +323,49 @@ VOLUME_THRESHOLDS = {
 ---
 
 ## Componentes Principais
+
+### 0. Interface Gráfica (app.py)
+
+**Responsabilidade:** Camada de apresentação via navegador (Streamlit)
+
+**Como iniciar:**
+
+```bash
+# Linux/Mac
+./start_ui.sh
+
+# Windows
+start_ui.bat
+```
+
+Acesse `http://127.0.0.1:8501` no navegador.
+
+**Funcionalidades:**
+
+- Upload de arquivo de logs `.json` ou uso do dataset padrão
+- Seleção interativa de provedores (desabilitados automaticamente se não configurados)
+- Indicador de status do Puter Bridge (🟢 Online / 🔴 Offline)
+- Preview dos primeiros 10 logs antes de executar
+- Execução da análise com barra de progresso em tempo real
+- Exibição dos resultados em abas separadas por provedor, com gráficos e ações prioritárias
+- Aba comparativa com todos os provedores lado a lado
+- Download dos relatórios JSON diretamente pelo navegador
+
+**Estrutura interna:**
+
+```python
+# Funções principais
+_check_provider_availability()   # Verifica .env e Puter Bridge
+_run_analysis(...)               # Orquestra os analyzers por provedor selecionado
+_calculate_assessment(...)       # Calcula Health Score e ações prioritárias
+_show_provider_results(...)      # Renderiza resultados de um provedor
+_show_comparative_tab(...)       # Renderiza tabela comparativa
+main()                           # Monta a página Streamlit completa
+```
+
+**Dependência:** requer `streamlit` (incluído em `requirements.txt`).
+
+---
 
 ### 1. ExcessiveLogsAnalyzer (main.py)
 
@@ -658,14 +712,15 @@ Application/
 │   └── utils/
 │       ├── __init__.py
 │       ├── llm_client.py          # Cliente Multi-LLM (Groq/Gemini/Claude/ChatGPT)
-│       └── log_processor.py       # Processamento estatístico
+│       ├── log_processor.py       # Processamento estatístico
+│       └── puter_client.py        # Cliente HTTP para o Puter Bridge
 │
 ├── dataset/
 │   ├── log_model.json             # Schema do formato
 │   ├── generate_synthetic_logs.py # Gerador de logs
 │   └── synthetic_logs.json        # Logs de exemplo
 │
-├── reports/                       # Relatórios gerados (NOVO)
+├── reports/                       # Relatórios gerados
 │   ├── *_groq.json               # Análise com Groq
 │   ├── *_gemini.json             # Análise com Gemini
 │   ├── *_claude_ai.json          # Análise com Claude
@@ -673,20 +728,35 @@ Application/
 │   ├── *_sem_ia.json             # Análise Standard
 │   └── *_comparativo.json        # Relatório consolidado
 │
+├── tests/
+│   ├── __init__.py
+│   ├── test_log_level_analyzer.py
+│   ├── test_log_processor.py
+│   ├── test_sampling_recommender.py
+│   └── test_unnecessary_logs_detector.py
+│
+├── puter-bridge/                  # Bridge Node.js para integração com Puter.js
+│
 ├── docs/
 │   ├── GUIA_USO.md                # Guia de uso
+│   ├── INICIO_RAPIDO.md           # Início rápido
 │   └── ARQUITETURA.md             # Documentação técnica (este arquivo)
 │
-├── run_with_puter.sh              # Script principal de execução (com Puter)
-├── run_analysis.sh                # Script de análise básica (sem Puter)
-├── start_puter.sh                 # Inicia Puter Bridge em background
-├── stop_puter.sh                  # Para Puter Bridge
-├── run_analysis.sh                # Script simplificado de execução (NOVO)
+├── app.py                         # Interface gráfica (GUI)
+├── run_with_puter.sh              # Script principal de execução (com Puter) — Linux/Mac
+├── run_with_puter.bat             # Script principal de execução (com Puter) — Windows
+├── run_analysis.sh                # Script de análise básica (sem Puter) — Linux/Mac
+├── run_analysis.bat               # Script de análise básica (sem Puter) — Windows
+├── start_puter.sh                 # Inicia Puter Bridge em background — Linux/Mac
+├── start_puter.bat                # Inicia Puter Bridge em background — Windows
+├── start_ui.sh                    # Inicia interface gráfica — Linux/Mac
+├── start_ui.bat                   # Inicia interface gráfica — Windows
+├── stop_puter.sh                  # Para Puter Bridge — Linux/Mac
+├── stop_puter.bat                 # Para Puter Bridge — Windows
 │
 ├── .env                           # Configuração de API keys
 ├── .env.example                   # Exemplo de configuração
 ├── requirements.txt               # Dependências (inclui groq e google-generativeai)
-├── INICIO_RAPIDO.md              # Início rápido
 └── README.md                      # Documentação principal
 ```
 
@@ -694,15 +764,17 @@ Application/
 
 | Arquivo | Linhas | Complexidade |
 |---------|--------|--------------|
-| main.py | ~620 | Alta |
-| log_level_analyzer.py | ~420 | Média |
-| unnecessary_logs_detector.py | ~530 | Média |
-| sampling_recommender.py | ~680 | Alta |
-| llm_client.py | ~260 | Média |
-| log_processor.py | ~180 | Baixa |
-| run_with_puter.sh | ~95 | Baixa |
-| start_puter.sh | ~30 | Baixa |
-| stop_puter.sh | ~25 | Baixa |
+| main.py | ~516 | Alta |
+| app.py | ~635 | Alta |
+| log_level_analyzer.py | ~333 | Média |
+| unnecessary_logs_detector.py | ~429 | Média |
+| sampling_recommender.py | ~528 | Alta |
+| llm_client.py | ~335 | Média |
+| log_processor.py | ~152 | Baixa |
+| run_with_puter.sh | ~109 | Baixa |
+| start_puter.sh | ~36 | Baixa |
+| stop_puter.sh | ~32 | Baixa |
+| run_analysis.sh | ~50 | Baixa |
 
 ---
 
@@ -1166,4 +1238,4 @@ Editar constantes nos arquivos de analyzer:
 ---
 
 **Versão Atual:** 3.0  
-**Última Atualização:** 26 de Abril de 2026
+**Última Atualização:** 29 de Julho de 2026

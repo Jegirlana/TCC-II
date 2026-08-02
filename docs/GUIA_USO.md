@@ -21,18 +21,18 @@ Guia completo para utilizar a ferramenta de análise de logs excessivos.
 ### Pré-requisitos
 - Python 3.8 ou superior
 - pip (gerenciador de pacotes Python)
+- Node.js 18 ou superior (apenas para usar Claude/ChatGPT via Puter)
 
 ### Passos de Instalação
 
+**Linux/Mac:**
 ```bash
 # 1. Navegue até o diretório do projeto
 cd Application
 
-# 2. Crie um ambiente virtual (recomendado)
+# 2. Crie um ambiente virtual
 python3 -m venv venv
-source venv/bin/activate  # Linux/Mac
-# ou
-venv\Scripts\activate  # Windows
+source venv/bin/activate
 
 # 3. Instale as dependências
 pip install -r requirements.txt
@@ -45,6 +45,28 @@ cd ..
 
 # 5. Teste a instalação
 python3 src/main.py dataset/synthetic_logs.json
+```
+
+**Windows:**
+```bat
+:: 1. Navegue até o diretório do projeto
+cd Application
+
+:: 2. Crie um ambiente virtual
+python -m venv venv
+venv\Scripts\activate
+
+:: 3. Instale as dependências
+pip install -r requirements.txt
+
+:: 4. Configure o Puter Bridge (para Claude e ChatGPT gratuitos)
+cd puter-bridge
+npm install
+npm run auth
+cd ..
+
+:: 5. Teste a instalação
+python src\main.py dataset\synthetic_logs.json
 ```
 
 Se ver o relatório de análise, a instalação está correta!
@@ -67,7 +89,126 @@ Cada provedor disponível executa as 3 análises independentemente. Os resultado
 
 ---
 
-## Uso Básico
+## Usando a Interface Gráfica
+
+A interface gráfica (GUI) é a forma mais simples de usar a ferramenta. Ela roda no navegador e não requer conhecimento de linha de comando além de um único comando para iniciá-la.
+
+### Pré-requisito
+
+O ambiente virtual deve estar criado e as dependências instaladas (veja a seção [Instalação](#instalação)).
+
+---
+
+### Passo a passo — Linux/Mac
+
+**1. Abra um terminal na pasta do projeto.**
+
+**2. Inicie a interface gráfica:**
+
+```bash
+./start_ui.sh
+```
+
+O script verifica o ambiente virtual, instala o Streamlit se necessário e inicia o servidor.
+
+**3. Acesse no navegador:**
+
+Abra `http://127.0.0.1:8501` no seu navegador. A tela inicial exibe um preview dos primeiros 10 logs do dataset padrão.
+
+**4. (Opcional) Ative Claude e ChatGPT via Puter:**
+
+Em um segundo terminal, execute:
+
+```bash
+./start_puter.sh
+```
+
+A interface detecta automaticamente o Puter Bridge e habilita os provedores Claude e ChatGPT.
+
+**5. Para encerrar:**
+
+Pressione `Ctrl+C` no terminal onde o `start_ui.sh` está rodando.
+
+---
+
+### Passo a passo — Windows
+
+**1. Abra o Explorador de Arquivos na pasta do projeto.**
+
+**2. Dê duplo clique em `start_ui.bat`** — ou execute pelo Prompt de Comando:
+
+```bat
+start_ui.bat
+```
+
+O script verifica o ambiente virtual, instala o Streamlit se necessário e abre a interface no navegador automaticamente em `http://127.0.0.1:8501`.
+
+**3. (Opcional) Ative Claude e ChatGPT via Puter:**
+
+Abra outro Prompt de Comando na pasta do projeto e execute:
+
+```bat
+start_puter.bat
+```
+
+A interface detecta automaticamente o Puter Bridge e habilita os provedores Claude e ChatGPT.
+
+**4. Para encerrar:**
+
+Feche a janela do Prompt de Comando onde o `start_ui.bat` está rodando, ou pressione `Ctrl+C`.
+
+---
+
+### Como usar a interface
+
+A interface é dividida em duas áreas:
+
+#### Barra lateral (esquerda)
+
+| Seção | O que fazer |
+|-------|-------------|
+| **Arquivo de Logs** | Faça upload de um arquivo `.json` ou marque "Usar dataset padrão" |
+| **Provedores de IA** | Marque os provedores desejados. Provedores sem configuração aparecem desabilitados com a instrução para ativá-los |
+| **Puter Bridge** | Indica 🟢 Online ou 🔴 Offline. Se offline, expanda "Como ativar Claude/ChatGPT?" para ver o comando |
+| **Nome base dos relatórios** | Define o prefixo dos arquivos gerados em `reports/` |
+| **Executar Análise** | Clica para iniciar. Fica desabilitado se nenhum provedor estiver selecionado |
+
+#### Área principal (direita)
+
+Antes de executar, exibe um preview dos primeiros 10 logs do arquivo selecionado.
+
+Após a execução:
+
+1. **Visão Geral do Dataset** — métricas globais: total de logs, taxa (logs/min), duração e padrões duplicados.
+2. **Abas por provedor** — uma aba para cada provedor executado, contendo:
+   - Health Score, severidade, número de issues e modelo utilizado
+   - Ações prioritárias recomendadas
+   - Gráficos de distribuição por nível e por serviço
+   - Detalhes das 3 análises (níveis de log, logs desnecessários, sampling)
+   - Botão para baixar o relatório JSON daquele provedor
+3. **Aba Comparativo** — tabela lado a lado com Health Score, severidade e issues de todos os provedores, mais botão para baixar o relatório consolidado.
+
+---
+
+### Relatórios gerados
+
+Ao executar a análise pela interface, os mesmos relatórios da linha de comando são salvos em `reports/`:
+
+```
+reports/
+├── {nome}_groq.json
+├── {nome}_gemini.json
+├── {nome}_claude_ai.json
+├── {nome}_chatgpt.json
+├── {nome}_sem_ia.json
+└── {nome}_comparativo.json
+```
+
+Onde `{nome}` é o valor definido no campo "Nome base dos relatórios" (padrão: `synthetic_logs`).
+
+---
+
+## Uso Básico (Linha de Comando)
 
 ### Sintaxe do Comando
 
@@ -524,7 +665,7 @@ python3 src/main.py dataset/synthetic_logs.json
 - **Parar Puter Bridge:** `./stop_puter.sh`
 - **Gerar novo dataset sintético:** `python3 dataset/generate_synthetic_logs.py`
 - **Documentação técnica:** `docs/ARQUITETURA.md`
-- **Comparativo de provedores:** `docs/TABELA_COMPARACAO.md`
+- **Início rápido:** `docs/INICIO_RAPIDO.md`
 
 ---
 
