@@ -428,6 +428,7 @@ def main():
         st.header("⚙️ Configuração")
 
         # Upload de arquivo
+        st.caption("Passo 1 — Escolha o arquivo de logs")
         st.subheader("📂 Arquivo de Logs")
         uploaded = st.file_uploader(
             "Selecione um arquivo JSON de logs",
@@ -441,7 +442,10 @@ def main():
             disabled=uploaded is not None,
         )
 
+        st.divider()
+
         # Provedores
+        st.caption("Passo 2 — Escolha um provedor de IA")
         st.subheader("🤖 Provedores de IA")
         availability = _check_provider_availability()
 
@@ -465,6 +469,7 @@ def main():
         st.divider()
 
         # Relatório de saída
+        st.caption("Passo 3 — Defina o nome do relatório")
         st.subheader("📁 Saída")
         output_name = st.text_input(
             "Nome base dos relatórios",
@@ -475,6 +480,7 @@ def main():
         st.divider()
 
         # Botão de execução
+        st.caption("Passo 4 — Execute a análise")
         run_btn = st.button(
             "▶ Executar Análise",
             type="primary",
